@@ -1,0 +1,25 @@
+{
+    "name": "smart-cache/smart-cache",
+    "description": "Modify the cache refresh time as the number of requests changes",
+    "keywords": ["php", "cache"],
+    "type": "library",
+    "license": "",
+    "authors": [
+        {
+            "name": "zhanjinbiao"
+        }
+    ],
+    "require": {
+        "php": ">=5.6",
+    },
+    "require-dev": {
+    },
+    "autoload": {
+    },
+    "bin": ["bin/smart-cache"],
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0"
+        }
+    }
+}
