@@ -58,9 +58,6 @@ class RedisHandler extends BaseHandler{
 
         $redis = self::$redis;
         $value = $redis->get($key);
-        if($value === null){
-            return null;
-        }
         return $value;
     }
 
@@ -117,5 +114,12 @@ class RedisHandler extends BaseHandler{
             return false;
         }
         return true;
+    }
+
+    protected function delete($key)
+    {
+        $redis = self::$redis;
+        $value = $redis->del($key);
+        return $value;
     }
 }

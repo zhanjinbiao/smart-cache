@@ -95,4 +95,18 @@ abstract class BaseHandler{
 
     abstract protected function getConnection();
 
+    abstract protected function delete($key);
+
+    protected function deleteCache($key){
+        if(!is_string($key)){
+            throw new \Exception('key must is string type.');
+        }
+        if(!$this->getConnection()){
+            return false;
+        }
+        $key = self::CACHE_PREFIX.$key;
+        $row = $this->delete($key);
+        return $row;
+    }
+
 }
