@@ -10,7 +10,7 @@ namespace Handler;
 abstract class BaseHandler{
 	const CACHE_PREFIX = "smartCache_";
 	static private $handler=null;
-	private $conf =[];
+    protected $conf =[];
 	protected $helper = null;
 	
 
