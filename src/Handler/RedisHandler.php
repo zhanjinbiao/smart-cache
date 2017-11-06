@@ -12,7 +12,6 @@ class RedisHandler extends BaseHandler{
     static private $redis=null;
     private $config='default';
     private $defaultPort=6379;
-    private $conf=null;
     static public function getInstance($conf){
         if(self::$handler === null){
             self::$handler = new RedisHandler($conf);
