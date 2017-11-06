@@ -9,20 +9,21 @@ namespace Handler;
 class RedisHandler extends BaseHandler{
 
     static private $handler=null;
+    static private $redis=null;
     private $config='default';
     private $defaultPort=6379;
     private $conf=null;
     private $helper;
     static public function getInstance($conf){
         if(self::$handler === null){
-            return new RedisHandler($conf);
+            self::$handler = new RedisHandler($conf);
         }
-        return null;
+        return self::$handler;
     }
 
     private function __construct($conf)
     {
-        self::$handler = new \Redis();
+        self::$redis = new \Redis();
         $this->conf = $conf;
         $this->helper = new helper();
     }
@@ -33,15 +34,15 @@ class RedisHandler extends BaseHandler{
      * @DateTime 2017-11-06T01:28:46+0800
      * @param    [type]                   $key   [key of save data]
      * @param    [type]                   $value [value of save data]
-     * @param    integer                  $time  [storage life(s)]
+     * @param    integer                  $time  [storage life(ms)]
      * @return   [type]                          [description]
      */
     public function save($key, $value, $time=0)
     {
         if($time > 0){
-            $cache_redis->psetex($key, $long_msec, $value);
+            self::$handler->psetex($key, $time, $value);
         }else{
-            $cache_redis->set($key, $value);
+            self::$handler->set($key, $value);
         }
         return true;
     }
@@ -62,7 +63,7 @@ class RedisHandler extends BaseHandler{
         if($value === null){
             return null;
         }
-        return $data;
+        return $value;
     }
 
     /**
@@ -74,7 +75,7 @@ class RedisHandler extends BaseHandler{
      */
     public function connection($config){
         if(!is_string($config) && !is_array($config)){
-            throw new Exception("config is invalid type.", 1);
+            throw new \Exception("config is invalid type.", 1);
             
         }
         $this->config = $config;
@@ -86,17 +87,17 @@ class RedisHandler extends BaseHandler{
      * @DateTime 2017-11-06T01:26:49+0800
      * @return   [type]                   [description]
      */
-    private function getConnection(){
+    protected function getConnection(){
         if(is_string($this->config)){
-            if(!isset($this->conf[$this->config]){
+            if(!isset($this->conf[$this->config])){
                 return false;
             }
             $conf = $this->conf[$this->config];
         }else{
-            $count = count($this->config;
+            $count = count($this->config);
             if($count == 1){
                 $conf['host'] = $this->config[0];
-                $conf['port'] = $this->defaultPort
+                $conf['port'] = $this->defaultPort;
             } elseif ($count == 2) {
                 $conf['host'] = $this->config[0];
                 $conf['port'] = $this->config[1];

@@ -8,9 +8,11 @@
 namespace Handler;
 
 abstract class BaseHandler{
-	const CACHE_PREFIX="smartCache_";
-    $conf = [];
-    $helper = new \stuClass();
+	const CACHE_PREFIX = "smartCache_";
+	static private $handler=null;
+	private $conf =[];
+	private $helper = null;
+	
 
     /**
      * [save save todo]
@@ -46,7 +48,7 @@ abstract class BaseHandler{
         }
         $handler = self::$handler;
         $key = self::CACHE_PREFIX.$key;
-        $value = $this->get($key)
+        $value = $this->get($key);
         if($value === null){
             return null;
         }
@@ -90,6 +92,6 @@ abstract class BaseHandler{
         return true;
     }
 
-    abstract function getConnection();
+    abstract protected function getConnection();
 
 }

@@ -4,38 +4,30 @@
  * Date: 2017/11/4
  * Time: 14:40
  */
-//require(__DIR__."/Handler/RedisHandler.php");
-namespace Handler;
 use Handler\RedisHandler;
 
 class SmartCache{
     private $handler;
-    private $config;
-    function __construct()
+    function __construct($type="default")
     {
-        $this->config = include(__DIR__ . "/config.php");
-        $this->config = (object)$this->config;
-        if(!property_exists($this->config,'default')){
+        $config = include(__DIR__ . "/Handler/config.php");
+        $config = (object)$config;
+        if(!property_exists($config,$type)){
             return false;
         }
-        $default = $this->config->default;
+        $default = $config->$type;
         if($default == 'redis'){
-            $conf = $this->config->redis;
+            $conf = $config->redis;
             $this->handler = RedisHandler::getInstance($conf);
         }
-        return $this->handler;
     }
-}
 
-function __autoload($className)
-{
-    if (0 === strpos($className, $this->prefix)) {
-        $parts = explode('\\', substr($className, $this->prefixLength));
-        $filepath = $this->directory.DIRECTORY_SEPARATOR.implode(DIRECTORY_SEPARATOR, $parts).'.php';
+    public function __call($methodName,$argument){
 
-        if (is_file($filepath)) {
-            require $filepath;
-        }
+        return call_user_func_array(array($this->handler, $methodName),$argument);
     }
+
 }
-new SmartCache();
+spl_autoload_register(function ($class_name) {
+    require_once $class_name . '.php';
+});
