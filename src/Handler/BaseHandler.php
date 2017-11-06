@@ -11,7 +11,7 @@ abstract class BaseHandler{
 	const CACHE_PREFIX = "smartCache_";
 	static private $handler=null;
 	private $conf =[];
-	private $helper = null;
+	protected $helper = null;
 	
 
     /**
@@ -46,7 +46,9 @@ abstract class BaseHandler{
         if(!is_string($key)){
             throw new \Exception('key must is string type.');
         }
-        $handler = self::$handler;
+		if(!$this->getConnection()){
+			return false;
+		}
         $key = self::CACHE_PREFIX.$key;
         $value = $this->get($key);
         if($value === null){
@@ -72,7 +74,7 @@ abstract class BaseHandler{
         if(!is_string($key)){
             throw new \Exception('key must is string type.');
         }
-        if(!is_string($value)){
+        if(!is_string($value) && !is_array($value)){
             throw new \Exception('value must is a array or a string!');
         }
         if(!is_numeric($time)){
@@ -81,7 +83,6 @@ abstract class BaseHandler{
         if(!$this->getConnection()){
         	return false;
         }
-        $handler = self::$handler;
         $key = self::CACHE_PREFIX.$key;
         $long_msec = $time*1000;//保存的毫秒数
         $value = $this->helper->encodeValue($value,$time);

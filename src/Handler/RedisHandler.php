@@ -13,7 +13,6 @@ class RedisHandler extends BaseHandler{
     private $config='default';
     private $defaultPort=6379;
     private $conf=null;
-    private $helper;
     static public function getInstance($conf){
         if(self::$handler === null){
             self::$handler = new RedisHandler($conf);
@@ -40,9 +39,9 @@ class RedisHandler extends BaseHandler{
     public function save($key, $value, $time=0)
     {
         if($time > 0){
-            self::$handler->psetex($key, $time, $value);
+            self::$redis->psetex($key, $time, $value);
         }else{
-            self::$handler->set($key, $value);
+            self::$redis->set($key, $value);
         }
         return true;
     }
@@ -58,8 +57,8 @@ class RedisHandler extends BaseHandler{
     {
         // TODO: Implement getCache() method.
 
-        $handler = self::$handler;
-        $value = $handler->get($key);
+        $redis = self::$redis;
+        $value = $redis->get($key);
         if($value === null){
             return null;
         }
@@ -111,9 +110,9 @@ class RedisHandler extends BaseHandler{
         }
         $conf = (object)$conf;
         try{
-            self::$handler->connect($conf->host,$conf->port);
+            self::$redis->connect($conf->host,$conf->port);
             if(property_exists($conf, 'password')){
-                self::$handler->auth($conf->password);
+                self::$redis->auth($conf->password);
             }
         }catch(\Exception $e){
             return false;
