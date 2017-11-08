@@ -12,6 +12,7 @@ class RedisHandler extends BaseHandler{
     static private $redis=null;
     private $config='default';
     private $defaultPort=6379;
+    private $connection_state = false;
     static public function getInstance($conf){
         if(self::$handler === null){
             self::$handler = new RedisHandler($conf);
@@ -61,6 +62,13 @@ class RedisHandler extends BaseHandler{
         return $value;
     }
 
+    protected function delete($key)
+    {
+        $redis = self::$redis;
+        $value = $redis->del($key);
+        return $value;
+    }
+
     /**
      * [connection choose connection]
      * @Author   Czhan
@@ -71,8 +79,9 @@ class RedisHandler extends BaseHandler{
     public function connection($config){
         if(!is_string($config) && !is_array($config)){
             throw new \Exception("config is invalid type.", 1);
-            
+
         }
+        $this->connection_state = false;
         $this->config = $config;
     }
 
@@ -83,6 +92,9 @@ class RedisHandler extends BaseHandler{
      * @return   [type]                   [description]
      */
     protected function getConnection(){
+        if($this->connection_state){//判断是否已经连接
+            return true;
+        }
         if(is_string($this->config)){
             if(!isset($this->conf[$this->config])){
                 return false;
@@ -100,6 +112,11 @@ class RedisHandler extends BaseHandler{
                 $conf['host'] = $this->config[0];
                 $conf['port'] = $this->config[1];
                 $conf['password'] = $this->config[2];
+            } elseif ($count == 4){
+                $conf['host'] = $this->config[0];
+                $conf['port'] = $this->config[1];
+                $conf['password'] = $this->config[2];
+                $conf['database'] = $this->config[3];
             }else{
                 return false;
             }
@@ -108,18 +125,22 @@ class RedisHandler extends BaseHandler{
         try{
             self::$redis->connect($conf->host,$conf->port);
             if(property_exists($conf, 'password')){
-                self::$redis->auth($conf->password);
+                if($conf->password !== null){
+                    self::$redis->auth($conf->password);
+                }
+            }
+            if(property_exists($conf, 'database')){
+                self::$redis->select($conf->database);
             }
         }catch(\Exception $e){
             return false;
         }
+        $this->connection_state = true;
         return true;
     }
 
-    protected function delete($key)
-    {
-        $redis = self::$redis;
-        $value = $redis->del($key);
-        return $value;
+    public function __call($methodName,$argument){
+        $this->getConnection();
+        return call_user_func_array(array(self::$redis, $methodName),$argument);
     }
 }

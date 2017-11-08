@@ -19,14 +19,13 @@ class helper{
     }
 
     public function encodeValue($data,$time=0){
-        $long_msec = $time*1000;//保存的毫秒数
         $save_time = microtime(true)*1000;
-        $value = json_encode(['data'=>$data,'save_time'=>$save_time,'save_long'=>$long_msec]);
+        $value = json_encode(['data'=>$data,'save_time'=>$save_time,'save_long'=>$time]);
 
         return $value;
     }
-    
-    
+
+
     public function decodeValue($data){
         //解析获取的数据
         $value = json_decode($data, true);
@@ -46,12 +45,12 @@ class helper{
         $prob = $this->getProbInThisTime( $long_msec, $pass_time);
         $prob_num = $long_msec * $prob;//算出相对的概率数
         $rand_num = mt_rand(0,$long_msec);
-        $pass_time = intval($pass_time/1000);
         if($rand_num < $prob_num){//需要刷新数据，缓存过期
             return false;
         }
 
         $data = $value['data'];
+        return $data;
     }
 
     /**(y=(x/m)^e) m为maxTime

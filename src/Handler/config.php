@@ -16,15 +16,5 @@ return [
             'port'     => 6379,
             'database' => 0,
         ]
-    ],
-
-    'memcache'=>[
-        'default' => [
-            'host'     => 'localhost',
-            'password' => null,
-            'port'     => 6379,
-            'database' => 0,
-        ]
     ]
-
 ];

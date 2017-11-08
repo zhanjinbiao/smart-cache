@@ -23,11 +23,11 @@ class SmartCache{
     }
 
     public function __call($methodName,$argument){
-
         return call_user_func_array(array($this->handler, $methodName),$argument);
     }
 
 }
 spl_autoload_register(function ($class_name) {
-    require_once $class_name . '.php';
+    $class_name = str_replace('\\','/',$class_name);
+    require_once __DIR__.'/'.$class_name . '.php';
 });
