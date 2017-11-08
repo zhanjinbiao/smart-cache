@@ -4,7 +4,7 @@
  * Date: 2017/11/4
  * Time: 14:40
  */
-namespace Handler;
+namespace SmartCache\Handler;
 
 class RedisHandler extends BaseHandler{
 

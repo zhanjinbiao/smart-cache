@@ -5,7 +5,7 @@
  * Date: 2017/11/4
  * Time: 14:40
  */
-namespace Handler;
+namespace SmartCache\Handler;
 
 abstract class BaseHandler{
     const CACHE_PREFIX = "smartCache_";

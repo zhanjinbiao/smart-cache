@@ -4,7 +4,8 @@
  * Date: 2017/11/4
  * Time: 14:40
  */
-use Handler\RedisHandler;
+namespace SmartCache;
+use SmartCache\Handler\RedisHandler;
 
 class SmartCache{
     private $handler;
@@ -27,7 +28,3 @@ class SmartCache{
     }
 
 }
-spl_autoload_register(function ($class_name) {
-    $class_name = str_replace('\\','/',$class_name);
-    require_once __DIR__.'/'.$class_name . '.php';
-});
