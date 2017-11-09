@@ -4,9 +4,9 @@
  * Date: 2017/11/4
  * Time: 16:21
  */
-namespace Handler;
+namespace SmartCache\Handler;
 
-class helper{
+class Helper{
     private $E = 10;
 
     function __construct($e = 10)

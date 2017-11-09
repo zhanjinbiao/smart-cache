@@ -11,7 +11,7 @@ class SmartCache{
     private $handler;
     function __construct($type="default")
     {
-        $config = include(__DIR__ . "/Handler/config.php");
+        $config = include(__DIR__ . "/Handler/Config.php");
         $config = (object)$config;
         if(!property_exists($config,$type)){
             return false;
