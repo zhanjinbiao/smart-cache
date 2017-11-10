@@ -11,16 +11,8 @@ class SmartCache{
     private $handler;
     function __construct($type="default")
     {
-        $config = include(__DIR__ . "/Handler/Config.php");
-        $config = (object)$config;
-        if(!property_exists($config,$type)){
-            return false;
-        }
-        $default = $config->$type;
-        if($default == 'redis'){
-            $conf = $config->redis;
-            $this->handler = RedisHandler::getInstance($conf);
-        }
+        $handlerFactory = new HandlerFactory();
+        $this->handler = $handlerFactory->createHandler($type);
     }
 
     public function __call($methodName,$argument){
