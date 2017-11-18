@@ -7,11 +7,10 @@
  */
 namespace SmartCache\Handler;
 
+
 abstract class BaseHandler{
     const CACHE_PREFIX = "smartCache_";
-    static private $handler=null;
     protected $conf =[];
-    protected $helper = null;
 
 
     /**
@@ -35,12 +34,9 @@ abstract class BaseHandler{
         if(!is_numeric($time)){
             throw new \Exception('time must is string type.');
         }
-        if(!$this->getConnection()){
-            return false;
-        }
         $key = self::CACHE_PREFIX.$key;
         $long_msec = $time*1000;//保存的毫秒数
-        $value = $this->helper->encodeValue($value,$long_msec);
+        $value = Helper::encodeValue($value,$long_msec);
         $save = $this->save($key, $value, $long_msec);
         if(!$save){
             return false;
@@ -60,24 +56,18 @@ abstract class BaseHandler{
         if(!is_string($key)){
             throw new \Exception('key must is string type.');
         }
-        if(!$this->getConnection()){
-            return false;
-        }
         $key = self::CACHE_PREFIX.$key;
         $value = $this->get($key);
-        if($value === null){
+        if($value === false){
             return null;
         }
-        $data = $this->helper->decodeValue($value);
+        $data = Helper::decodeValue($value);
         return $data;
     }
 
-    protected function deleteCache($key){
+    public function deleteCache($key){
         if(!is_string($key)){
             throw new \Exception('key must is string type.');
-        }
-        if(!$this->getConnection()){
-            return false;
         }
         $key = self::CACHE_PREFIX.$key;
         $row = $this->delete($key);

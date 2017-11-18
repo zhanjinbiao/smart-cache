@@ -5,18 +5,39 @@
  * Time: 14:40
  */
 namespace SmartCache;
+use SmartCache\Handler\Helper;
 use SmartCache\Handler\RedisHandler;
 
 class SmartCache{
-    private $handler;
-    function __construct($type="default")
+    const DEFAULT_STRING = 'default';
+    private function __construct()
     {
-        $handlerFactory = new HandlerFactory();
-        $this->handler = $handlerFactory->createHandler($type);
     }
 
-    public function __call($methodName,$argument){
-        return call_user_func_array(array($this->handler, $methodName),$argument);
+    /**设置配置
+     * @param $conf
+     * @return mixed|RedisHandler
+     * @throws \Exception
+     */
+    static public function connection($conf=self::DEFAULT_STRING){
+        $conf = Helper::getConfig($conf);
+        $redisHandler = RedisHandler::getInstanceByConf($conf);
+        return $redisHandler;
     }
 
+
+    /**
+     * @param $methodName
+     * @param $arguments
+     * @return mixed
+     */
+    static public function __callStatic($methodName, $arguments)
+    {
+//        $redisHandler = new RedisHandler();
+        // TODO: Implement __callStatic() method.
+        $redisHandler = self::connection();
+        return call_user_func_array(array($redisHandler, $methodName),$arguments);
+    }
+
+    
 }

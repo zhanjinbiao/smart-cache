@@ -7,18 +7,14 @@
 namespace SmartCache\Handler;
 
 class Helper{
-    private $E = 10;
+    static private $E = 10;
+    static private $config = [];
 
-    function __construct($e = 10)
-    {
-        $this->setE($e);
+    static public function setE($e){
+        self::$E = $e;
     }
 
-    public function setE($e){
-        $this->E = $e;
-    }
-
-    public function encodeValue($data,$time=0){
+    static public function encodeValue($data,$time=0){
         $save_time = microtime(true)*1000;
         $value = json_encode(['data'=>$data,'save_time'=>$save_time,'save_long'=>$time]);
 
@@ -26,7 +22,7 @@ class Helper{
     }
 
 
-    public function decodeValue($data){
+    static public function decodeValue($data){
         //解析获取的数据
         $value = json_decode($data, true);
         if(empty($value) || !isset($value['save_time']) || !isset($value['save_long']) || !isset($value['data'])){
@@ -42,7 +38,7 @@ class Helper{
             return $value['data'];
         }
         //根据 ($pass_time/$long_msec)^e(自然常数)算出需要刷新的概率
-        $prob = $this->getProbInThisTime( $long_msec, $pass_time);
+        $prob = self::getProbInThisTime( $long_msec, $pass_time);
         $prob_num = $long_msec * $prob;//算出相对的概率数
         $rand_num = mt_rand(0,$long_msec);
         if($rand_num < $prob_num){//需要刷新数据，缓存过期
@@ -59,19 +55,73 @@ class Helper{
      * @return int
      * @throws \Exception
      */
-    public function getProbInThisTime($m,$x){
+    static public function getProbInThisTime($m,$x){
         if(!is_numeric($m) || $m < 0){
             throw new \Exception('key must is a positive integer.');
         }
-        if(!is_numeric($x) || $x < 0){
+        if(!is_numeric($x) ){
             throw new \Exception('key must is a positive integer.');
         }
         if($x >= $m){
             return 1;
         }
+        if($x < 0){
+            return 0;
+        }
         $lowNum = (float)$x/$m;
-        $E = $this->E;//自然常数
+        $E = self::$E;//自然常数
         $prob = pow($lowNum, $E);
         return $prob;
+    }
+
+    /**根据传入的配置补全
+     * @param $conf
+     * @return array
+     */
+    static public function getConfig($conf){
+        if(empty(self::$config)){
+            self::$config = include(__DIR__ . "/config.php");
+        }
+        $redis_config = self::$config['redis'];
+        //从已有的配置获取
+        if(is_string($conf)){
+            foreach ($redis_config as $key => $value){
+                if($key == $conf){
+                    $conf = $value;
+                    break;
+                }
+            }
+            if(is_string($conf)){
+                return [];
+            }
+        }
+        if(!is_array($conf)){
+            return [];
+        }
+        //配置主机
+        if(!isset($conf['host'])){
+            return [];
+        }
+        if(!isset($conf['port'])){//配置端口
+            $conf['port'] = RedisHandler::DEFAULT_PORT;
+        }
+        if(!isset($conf['password'])){
+            $conf['password'] = null;
+        }
+        if(!isset($conf['database'])){
+            $conf['database'] = 0;
+        }
+        $res_conf['host'] = $conf['host'];
+        $res_conf['port'] = $conf['port'];
+        $res_conf['password'] = $conf['password'];
+        $res_conf['database'] = $conf['database'];
+        return $res_conf;
+    }
+
+    //获取对应的key
+    static public function confToString($conf){
+        $conf = json_encode($conf);
+        $conf = md5($conf);
+        return $conf;
     }
 }

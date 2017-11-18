@@ -29,6 +29,9 @@ redis[default] 使用的时候默认的配置，可以添加任意组的配置�
 ```
 $a = 10;
 $smartCache = new SmartCache();
+
+//更换为addTest的配置
+$smartCache->connection('addTest');
 /**保存缓存
 *第一个参数为保存的键，
 *第二个为保存的值可以是字符串或者数组，
@@ -41,9 +44,6 @@ $data = $smartCache->getCache('test');
 
 //清楚缓存
 $data = $smartCache->deleteCache('test')
-
-//更换为addTest的配置
-$smartCache->connection('addTest');
 
 //以数组形式传入配置，第一个参数为host，
 //第二个参数为part（默认为6379），第三参数为密码（没有则为null，或者不传）

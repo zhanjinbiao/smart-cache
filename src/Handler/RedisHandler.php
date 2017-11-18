@@ -6,42 +6,65 @@
  */
 namespace SmartCache\Handler;
 
+
 class RedisHandler extends BaseHandler{
 
-    static private $handler=null;
-    static private $redis=null;
-    private $config='default';
-    private $defaultPort=6379;
-    private $connection_state = false;
-    static public function getInstance($conf){
-        if(self::$handler === null){
-            self::$handler = new RedisHandler($conf);
-        }
-        return self::$handler;
-    }
-
+    private $redis = null;
+    const DEFAULT_PORT = 6379;
+    static private $instance = [];
+    private $conf_str = '';
     private function __construct($conf)
     {
-        self::$redis = new \Redis();
+        $conf_str = Helper::confToString($conf);
+        $this->redis = new \Redis();
+        $this->conf_str = $conf_str;
         $this->conf = $conf;
-        $this->helper = new helper();
+        $this->getConnection();
+    }
+
+    /**根据配置获取单例
+     * @param $conf
+     * @return mixed
+     */
+    static public function getInstanceByConf($conf){
+        $conf_str = Helper::confToString($conf);
+        if(!isset(self::$instance[$conf_str])){
+            self::$instance[$conf_str] = new RedisHandler($conf);
+        }
+        return self::$instance[$conf_str];
+    }
+
+    function __destruct()
+    {
+        // TODO: Implement __destruct() method.
+        $conf_str = $this->conf_str;
+        try{
+            $this->redis->close();
+            self::$instance[$conf_str] = null;
+        }catch (\Exception $e){
+            //todo :error
+        }
     }
 
     /**
      * [saveCache save data]
      * @Author   Czhan
      * @DateTime 2017-11-06T01:28:46+0800
-     * @param    [type]                   $key   [key of save data]
-     * @param    [type]                   $value [value of save data]
-     * @param    integer                  $time  [storage life(ms)]
-     * @return   [type]                          [description]
+     * @param $key
+     * @param $value
+     * @param    integer $time [storage life(ms)]
+     * @return bool [type]                          [description]
+     * @throws \Exception
+     * @internal param $ [type]                   $key   [key of save data]
+     * @internal param $ [type]                   $value [value of save data]
      */
     public function save($key, $value, $time=0)
     {
+        $redis = $this->redis;
         if($time > 0){
-            self::$redis->psetex($key, $time, $value);
+            $redis->psetex($key, $time, $value);
         }else{
-            self::$redis->set($key, $value);
+            $redis->set($key, $value);
         }
         return true;
     }
@@ -50,97 +73,69 @@ class RedisHandler extends BaseHandler{
      * [get get cache]
      * @Author   Czhan
      * @DateTime 2017-11-06T01:28:31+0800
-     * @param    [type]                   $key [description]
-     * @return   [type]                        [description]
+     * @param $key
+     * @return bool|string [type]                        [description]
+     * @throws \Exception
+     * @internal param $ [type]                   $key [description]
      */
     public function get($key)
     {
         // TODO: Implement getCache() method.
-
-        $redis = self::$redis;
+        $redis = $this->redis;
         $value = $redis->get($key);
         return $value;
     }
 
     protected function delete($key)
     {
-        $redis = self::$redis;
+        $redis = $this->redis;
         $value = $redis->del($key);
         return $value;
-    }
-
-    /**
-     * [connection choose connection]
-     * @Author   Czhan
-     * @DateTime 2017-11-06T00:47:31+0800
-     * @param    [string or array]                   $config [description]
-     * @return   [type]                           [description]
-     */
-    public function connection($config){
-        if(!is_string($config) && !is_array($config)){
-            throw new \Exception("config is invalid type.", 1);
-
-        }
-        $this->connection_state = false;
-        $this->config = $config;
     }
 
     /**
      * [getRedisConnection description]
      * @Author   Czhan
      * @DateTime 2017-11-06T01:26:49+0800
-     * @return   [type]                   [description]
+     * @return bool
+     * @throws \Exception
      */
     protected function getConnection(){
-        if($this->connection_state){//判断是否已经连接
-            return true;
-        }
-        if(is_string($this->config)){
-            if(!isset($this->conf[$this->config])){
-                return false;
-            }
-            $conf = $this->conf[$this->config];
-        }else{
-            $count = count($this->config);
-            if($count == 1){
-                $conf['host'] = $this->config[0];
-                $conf['port'] = $this->defaultPort;
-            } elseif ($count == 2) {
-                $conf['host'] = $this->config[0];
-                $conf['port'] = $this->config[1];
-            } elseif ($count == 3){
-                $conf['host'] = $this->config[0];
-                $conf['port'] = $this->config[1];
-                $conf['password'] = $this->config[2];
-            } elseif ($count == 4){
-                $conf['host'] = $this->config[0];
-                $conf['port'] = $this->config[1];
-                $conf['password'] = $this->config[2];
-                $conf['database'] = $this->config[3];
-            }else{
-                return false;
-            }
-        }
+        $conf = $this->conf;
         $conf = (object)$conf;
+        if(!property_exists($conf,'host')){
+            throw new \Exception("config lose host params");
+        }
+        if(!property_exists($conf, 'port')){
+            $conf->port = RedisHandler::DEFAULT_PORT;
+        }
         try{
-            self::$redis->connect($conf->host,$conf->port);
+            $this->redis->connect($conf->host,$conf->port);
             if(property_exists($conf, 'password')){
                 if($conf->password !== null){
-                    self::$redis->auth($conf->password);
+                    $this->redis->auth($conf->password);
                 }
             }
             if(property_exists($conf, 'database')){
-                self::$redis->select($conf->database);
+                $this->redis->select($conf->database);
             }
         }catch(\Exception $e){
             return false;
         }
-        $this->connection_state = true;
         return true;
     }
 
+
     public function __call($methodName,$argument){
-        $this->getConnection();
-        return call_user_func_array(array(self::$redis, $methodName),$argument);
+        if($methodName == "select"){
+            return false;
+        }
+        try{
+            $this->redis->ping();
+        }catch (\Exception $e){
+            $this->getConnection();
+        }
+        $result = call_user_func_array(array($this->redis, $methodName),$argument);
+        return $result;
     }
 }
