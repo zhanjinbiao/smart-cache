@@ -57,4 +57,4 @@ $smartCache->connection(['127.0.0.1','6379']);
 $smartCache->connection(['127.0.0.1']);
 
 ```
-> 并且支持redis对象原本的所有方法，keys等操作
+> 并且支持redis对象原本的所有方法，keys等操作。
