@@ -3,7 +3,7 @@
     "description": "Modify the cache refresh time as the number of requests changes",
     "keywords": ["php", "cache"],
     "type": "library",
-    "license": "",
+    "license": "MIT",
     "version": "1.2.1",
     "authors": [
         {
